@@ -1,7 +1,5 @@
 // SPDX-License-Identifier: NONE
-pragma solidity ^0.8.0;
-
-
+pragma solidity ^0.8.12;
 
 import "hardhat/console.sol";
 abstract contract Context {
@@ -142,8 +140,7 @@ contract SigmaV3 {
     // ** constructor **
 
     constructor(address _admin, address _Maintainance, 
-        IERC20 _usdt, IERC20 _SigmaToken, 
-        address _poolAddress){
+        IERC20 _usdt, IERC20 _SigmaToken){
         Id[_admin] = currentId;
         IdToAddress[currentId] =  _admin;
         Maintainance = _Maintainance;
@@ -158,12 +155,13 @@ contract SigmaV3 {
     }
     // ** writeables **
     // * registeration *
-    function Register(address _newUser, address _ref, uint _amount) external{
+    function Register(address _newUser, address _ref, uint _amount, uint _exchangeRates) external{
         require( exists[_newUser] != true , "User already exists");
         require( exists[_ref] == true , "User does not exists");
         usdt.transferFrom(_newUser,address(this), _amount);
         users[Id[_newUser]].purchased = _amount;
-        users[Id[_newUser]].passiveDueUnclaimed = _amount*3;
+        // Reminder do exchange from web3 not in smart contract
+        users[Id[_newUser]].passiveDueUnclaimed = _exchangeRates*3;
         users[Id[_newUser]].lastWithdrawl = 0;
         users[Id[_newUser]].passiveDueClaimed = 0;
         users[Id[_newUser]].upgraded = false;
@@ -181,11 +179,12 @@ contract SigmaV3 {
     }
     function Upgrade(address _newUser, uint _amount, uint _currency) external{
         require( exists[_newUser] == true , "User already exists");
+        address _ref = IdToAddress[users[currentId].DRef];
         // require( exists[_ref] == true , "User does not exists");
         if(_currency == 1){
             usdt.transferFrom(_newUser,address(this), _amount);
             // LiquidityPool = LiquidityPool+((_amount*rewardsDestribution[4])/10000);
-        }else if (_currency = 2){
+        }else if (_currency == 2){
             SigmaToken.transferFrom(_newUser,address(this), _amount);
         }
         users[Id[_newUser]].purchased = _amount;
@@ -228,23 +227,23 @@ contract SigmaV3 {
                 uint difference = newTime-2592000; 
                 users[Id[_user]].lastWithdrawl = (block.timestamp)-difference;
             }
-            sigmaTokenAmount = users[Id[_newUser]].passiveDueUnclaimed/12;
-            users[Id[_newUser]].passiveDueClaimed = users[Id[_newUser]].passiveDueClaimed + sigmaTokenAmount;
+            sigmaTokenAmount = users[Id[_user]].passiveDueUnclaimed/12;
+            users[Id[_user]].passiveDueClaimed = users[Id[_user]].passiveDueClaimed + sigmaTokenAmount;
             rewardPool = rewardPool - sigmaTokenAmount;
         }
         // uint usdtAmount = (users[Id[_user]].purchased*2500)/10000;
         // usdt.transfer(to, usdtAmount);
-        if(users[Id[_newUser]].passiveDueClaimed < users[Id[_newUser]].passiveDueUnclaimed){
+        if(users[Id[_user]].passiveDueClaimed < users[Id[_user]].passiveDueUnclaimed){
             SigmaToken.transfer(_user, sigmaTokenAmount);
-            uint val = users[_user].RefUnclaimedRewards;
+            uint val = users[Id[_user]].RefUnclaimedRewards;
             if(val > 0){
-                usdt.transfer(_user, amount);
+                usdt.transfer(_user, val);
             }
-        }else if(users[Id[_newUser]].passiveDueClaimed == users[Id[_newUser]].passiveDueUnclaimed){
-            users[Id[_newUser]].passiveDueClaimed = 0;
-            users[Id[_newUser]].passiveDueUnclaimed = 0;
-            users[Id[_newUser]].purchased = 0;
-            users[Id[_newUser]].lastWithdrawl = 0;
+        }else if(users[Id[_user]].passiveDueClaimed == users[Id[_user]].passiveDueUnclaimed){
+            users[Id[_user]].passiveDueClaimed = 0;
+            users[Id[_user]].passiveDueUnclaimed = 0;
+            users[Id[_user]].purchased = 0;
+            users[Id[_user]].lastWithdrawl = 0;
         }
     }
 
