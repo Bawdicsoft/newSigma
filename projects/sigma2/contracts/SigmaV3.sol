@@ -172,6 +172,7 @@ contract SigmaV3 {
         }else if(Id[_ref] != 0){
             distance[_newUser] = distance[_ref]+1;
         }
+        
         rewardPool = rewardPool+((_amount*rewardsDestribution[2])/10000);
         marketing = marketing+((_amount*rewardsDestribution[3])/10000);
         Development = Development+((_amount*rewardsDestribution[4])/10000);
