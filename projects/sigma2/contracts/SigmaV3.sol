@@ -90,9 +90,8 @@ interface IERC20 {
 
 contract SigmaV3 {
     // ** variables ** 
-    uint24 public immutable poolFee;
     address admin;
-    address FeeCollector;
+    address Maintainance;
     uint rewardPool;
     uint marketing;
     uint Development;
@@ -103,12 +102,11 @@ contract SigmaV3 {
     IERC20 SigmaToken;
     uint[] public fee = [0,10e18,25e18,50e18,100e18,200e18,400e18 ];
     uint[] public rewardsDestribution = [0, 1500,1000,2000,500,5000 ];
-    // uint[] uplineRewardDistribution = [0,1e17,375e16,125e17,15e18];
     uint[] uplineRewardDistribution = [0,1800,1500,1200,1000,600,400,
                             200,200,150,150,150,150,150,150,200,2000];
+    // uint[] uplineRewardDistribution = [0,1e17,375e16,125e17,15e18];
 
     uint PassiveIncome;
-    uint RewardPool;
     uint PlatformFee;
     uint PlatinumUsers;
     uint into;
@@ -125,6 +123,7 @@ contract SigmaV3 {
         uint passiveLastClaimed;
         uint lastWithdrawl; 
         uint counter;
+        bool upgraded;
     }
     // Events 
     event NewUser(uint _user,uint _ref,uint _time);
@@ -142,12 +141,12 @@ contract SigmaV3 {
     // ** modifiers ** 
     // ** constructor **
 
-    constructor(address _admin, address _feeCollector, 
+    constructor(address _admin, address _Maintainance, 
         IERC20 _usdt, IERC20 _SigmaToken, 
-        address _poolAddress, uint24 _poolFee){
+        address _poolAddress){
         Id[_admin] = currentId;
         IdToAddress[currentId] =  _admin;
-        FeeCollector = _feeCollector;
+        Maintainance = _Maintainance;
         exists[_admin] = true;
         currentId=currentId+1;
         admin= _admin;
@@ -155,7 +154,7 @@ contract SigmaV3 {
         distance[_admin] = 0;
         usdt = IERC20(_usdt);
         SigmaToken = IERC20(_SigmaToken);
-        poolFee = _poolFee;
+    
     }
     // ** writeables **
     // * registeration *
@@ -167,16 +166,17 @@ contract SigmaV3 {
         users[Id[_newUser]].passiveDueUnclaimed = _amount*3;
         users[Id[_newUser]].lastWithdrawl = 0;
         users[Id[_newUser]].passiveDueClaimed = 0;
+        users[Id[_newUser]].upgraded = false;
         if(Id[_ref] == 0){
             distance[IdToAddress[0]] = 1;
         }else if(Id[_ref] != 0){
             distance[_newUser] = distance[_ref]+1;
         }
-        
+
         rewardPool = rewardPool+((_amount*rewardsDestribution[2])/10000);
         marketing = marketing+((_amount*rewardsDestribution[3])/10000);
         Development = Development+((_amount*rewardsDestribution[4])/10000);
-        LiquidityPool = LiquidityPool+((_amount*rewardsDestribution[4])/10000);
+        LiquidityPool = LiquidityPool+((_amount*rewardsDestribution[5])/10000);
         silver(_newUser, _ref,_amount,false);
     }
     function Upgrade(address _newUser, uint _amount, uint _currency) external{
@@ -184,6 +184,7 @@ contract SigmaV3 {
         // require( exists[_ref] == true , "User does not exists");
         if(_currency == 1){
             usdt.transferFrom(_newUser,address(this), _amount);
+            // LiquidityPool = LiquidityPool+((_amount*rewardsDestribution[4])/10000);
         }else if (_currency = 2){
             SigmaToken.transferFrom(_newUser,address(this), _amount);
         }
@@ -191,10 +192,10 @@ contract SigmaV3 {
         users[Id[_newUser]].passiveDueUnclaimed = _amount*3;
         users[Id[_newUser]].lastWithdrawl = 0;
         users[Id[_newUser]].passiveDueClaimed = 0;
+        users[Id[_newUser]].upgraded = true;
         rewardPool = rewardPool+((_amount*rewardsDestribution[2])/10000);
         marketing = marketing+((_amount*rewardsDestribution[3])/10000);
         Development = Development+((_amount*rewardsDestribution[4])/10000);
-        // LiquidityPool = LiquidityPool+((_amount*rewardsDestribution[4])/10000);
         silver(_newUser, _ref,_amount,false);
     }
     function FunctionalRegistration(address _newUser, address _ref, bool _free) public{
@@ -210,7 +211,13 @@ contract SigmaV3 {
         usdt.transfer(msg.sender,bal);
         SigmaToken.transfer(msg.sender,bal2);
     }
-
+    function adminWithdrawls()public{
+        if (msg.sender == Maintainance) {
+            usdt.transfer(msg.sender, Development);
+        } else if(msg.sender == admin){
+            usdt.transfer(msg.sender, marketing);
+        }
+    }
     function ClaimReward(address _user) external returns (uint, uint) {
         require( exists[_user] == true  , "User doesnt exists");
         // uint lastTime = users[Id[_user]].lastWithdrawl;
@@ -229,6 +236,10 @@ contract SigmaV3 {
         // usdt.transfer(to, usdtAmount);
         if(users[Id[_newUser]].passiveDueClaimed < users[Id[_newUser]].passiveDueUnclaimed){
             SigmaToken.transfer(_user, sigmaTokenAmount);
+            uint val = users[_user].RefUnclaimedRewards;
+            if(val > 0){
+                usdt.transfer(_user, amount);
+            }
         }else if(users[Id[_newUser]].passiveDueClaimed == users[Id[_newUser]].passiveDueUnclaimed){
             users[Id[_newUser]].passiveDueClaimed = 0;
             users[Id[_newUser]].passiveDueUnclaimed = 0;
@@ -236,6 +247,7 @@ contract SigmaV3 {
             users[Id[_newUser]].lastWithdrawl = 0;
         }
     }
+
 
     // ** Internal functions **   
     function silver(address _user, address _ref, uint _amount , bool _free) internal{
