@@ -91,6 +91,7 @@ contract SigmaV3 {
     address admin;
     address Maintainance;
     uint rewardPool;
+    uint returnPool;
     uint marketing;
     uint Development;
     uint LiquidityPool;
@@ -134,6 +135,7 @@ contract SigmaV3 {
     mapping(address => uint) internal PassiveClaimed;
     mapping(address => uint) internal distance;
     mapping(address => mapping(uint => uint[])) public team;
+    mapping(uint => uint) public PoolReward;
     
     
     // ** modifiers ** 
@@ -160,7 +162,6 @@ contract SigmaV3 {
         require( exists[_ref] == true , "User does not exists");
         usdt.transferFrom(_newUser,address(this), _amount);
         users[Id[_newUser]].purchased = _amount;
-        // Reminder do exchange from web3 not in smart contract
         users[Id[_newUser]].passiveDueUnclaimed = _exchangeRates*3;
         users[Id[_newUser]].lastWithdrawl = 0;
         users[Id[_newUser]].passiveDueClaimed = 0;
@@ -175,26 +176,6 @@ contract SigmaV3 {
         marketing = marketing+((_amount*rewardsDestribution[3])/10000);
         Development = Development+((_amount*rewardsDestribution[4])/10000);
         LiquidityPool = LiquidityPool+((_amount*rewardsDestribution[5])/10000);
-        silver(_newUser, _ref,_amount,false);
-    }
-    function Upgrade(address _newUser, uint _amount, uint _currency) external{
-        require( exists[_newUser] == true , "User already exists");
-        address _ref = IdToAddress[users[currentId].DRef];
-        // require( exists[_ref] == true , "User does not exists");
-        if(_currency == 1){
-            usdt.transferFrom(_newUser,address(this), _amount);
-            // LiquidityPool = LiquidityPool+((_amount*rewardsDestribution[4])/10000);
-        }else if (_currency == 2){
-            SigmaToken.transferFrom(_newUser,address(this), _amount);
-        }
-        users[Id[_newUser]].purchased = _amount;
-        users[Id[_newUser]].passiveDueUnclaimed = _amount*3;
-        users[Id[_newUser]].lastWithdrawl = 0;
-        users[Id[_newUser]].passiveDueClaimed = 0;
-        users[Id[_newUser]].upgraded = true;
-        rewardPool = rewardPool+((_amount*rewardsDestribution[2])/10000);
-        marketing = marketing+((_amount*rewardsDestribution[3])/10000);
-        Development = Development+((_amount*rewardsDestribution[4])/10000);
         silver(_newUser, _ref,_amount,false);
     }
     function FunctionalRegistration(address _newUser, address _ref, bool _free) public{
@@ -229,7 +210,6 @@ contract SigmaV3 {
             }
             sigmaTokenAmount = users[Id[_user]].passiveDueUnclaimed/12;
             users[Id[_user]].passiveDueClaimed = users[Id[_user]].passiveDueClaimed + sigmaTokenAmount;
-            rewardPool = rewardPool - sigmaTokenAmount;
         }
         // uint usdtAmount = (users[Id[_user]].purchased*2500)/10000;
         // usdt.transfer(to, usdtAmount);
@@ -246,7 +226,6 @@ contract SigmaV3 {
             users[Id[_user]].lastWithdrawl = 0;
         }
     }
-
 
     // ** Internal functions **   
     function silver(address _user, address _ref, uint _amount , bool _free) internal{
@@ -265,7 +244,6 @@ contract SigmaV3 {
                 team[_ref][users[Id[_ref]].counter].push(Id[_user]);
             }
         }
-        // team[_ref][users[Id[_ref]].counter] = currentId;
         users[currentId].started = block.timestamp;
         currentId++;
         if(_free != true){
@@ -289,10 +267,12 @@ contract SigmaV3 {
                 uint reward = (totalUplineReward * uplineRewardDistribution[i])/10000;
                 if(_refU != 1 || _refU != 0){
                     users[_refU].RefUnclaimedRewards = users[_ref].RefUnclaimedRewards+reward; 
+                    PoolReward[_refU] = PoolReward[_refU]+((users[_refU].purchased*1000)/10000);
                     _refU = distance[IdToAddress[users[_refU].DRef]];
                 }else if(_refU == 1 || _refU == 0){
                     if(_refU == 1){
                         users[_refU].RefUnclaimedRewards = users[_ref].RefUnclaimedRewards+reward;
+                        PoolReward[_refU] = PoolReward[_refU]+((users[_refU].purchased*1000)/100000);
                     }else if(_refU == 0){
                         users[_refU].RefUnclaimedRewards = users[_ref].RefUnclaimedRewards+reward;
                     }
@@ -330,13 +310,9 @@ contract SigmaV3 {
     function IdtoAddress(uint _id) public view returns(address ){
         return IdToAddress[_id];
     }
-
     function LastIdUser()public view returns(uint, uint){
         return (currentId,TotalEarningOfAllUsers);
     } 
-    // function buyLevelPrice() public view returns(uint[] memory){
-    //     return fee;
-    // }
     function arrayAllEqual(uint256[] memory arr, uint256 val) internal pure returns (bool) {
         for (uint i = 0; i < arr.length; i++) {
             if (arr[i] != val) {
@@ -351,5 +327,10 @@ contract SigmaV3 {
             sum += arr[i];
         }
         return sum < threshold;
+    }
+    function balances() public view returns(uint, uint){
+        uint usd = usdt.balanceOf(address(this));
+        uint sig = SigmaToken.balanceOf(address(this));
+        return(usd,sig);
     }
 }

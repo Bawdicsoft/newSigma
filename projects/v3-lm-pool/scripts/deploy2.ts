@@ -10,9 +10,9 @@ const currentNetwork = network.name
 async function main() {
   // const [owner] = await ethers.getSigners()
 
-  const privateKey = "0xcaea4dbb3e45cc13c141dc00c940a6fd09bb5b4927953e69a2ae6648beee387d"; // Ensure the 0x prefix
+  const privateKey = "0x357bcff19ee57d4e985ac3c76acdd7db3f86db2104199f1bc3515791561aeb95"; // Ensure the 0x prefix
 
-  const owner = new ethers.Wallet(privateKey, ethers.provider);
+  const owner = new ethers.Wallet(process.env.PRIVATE_KEY, ethers.provider);
   
   // Remember to update the init code hash in SC for different chains before deploying
   const networkName = network.name

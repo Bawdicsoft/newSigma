@@ -12,9 +12,9 @@ const artifacts: { [name: string]: ContractJson } = {
 }
 
 async function main() {
-  const privateKey = "0xcaea4dbb3e45cc13c141dc00c940a6fd09bb5b4927953e69a2ae6648beee387d"; // Ensure the 0x prefix
-
-  const owner = new ethers.Wallet(privateKey, ethers.provider);
+  const privateKey = "0x14320548066643a0690bf5bb36a26c1977a2086bc5c470ac83ca7c71dd57d03b"; // Ensure the 0x prefix
+  const provider = "HTTP://127.0.0.1:7545"
+  const owner = new ethers.Wallet(process.env.PRIVATE_KEY, ethers.provider);
   // Create a wallet (signer) from the private key
   // const [owner] = await ethers.getSigners()
   const networkName = network.name

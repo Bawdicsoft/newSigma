@@ -17,20 +17,23 @@ if (!network || !networks[network]) {
 }
 
 // await $`yarn workspace @pancakeswap/v3-core run hardhat run scripts/deploy.ts --network ${network}`
-await $`yarn workspace @pancakeswap/v3-core run hardhat run scripts/deploy.ts --network ganache`
 
 // await $`yarn workspace @pancakeswap/v3-periphery run hardhat run scripts/deploy2.ts --network ${network}`
-await $`yarn workspace @pancakeswap/v3-periphery run hardhat run scripts/deploy2.ts --network ganache`
 
 // await $`yarn workspace @pancakeswap/smart-router run hardhat run scripts/deploy2.ts --network ${network}`
-await $`yarn workspace @pancakeswap/smart-router run hardhat run scripts/deploy2.ts --network ganache`
 
 // await $`yarn workspace @pancakeswap/masterchef-v3 run hardhat run scripts/deploy2.ts --network ${network}`
-await $`yarn workspace @pancakeswap/masterchef-v3 run hardhat run scripts/deploy2.ts --network ganache`
 
 
 // await $`yarn workspace @pancakeswap/v3-lm-pool run hardhat run scripts/deploy2.ts --network ${network}`
+await $`yarn workspace @pancakeswap/v3-core run hardhat run scripts/deploy.ts --network ganache`
+await $`yarn workspace @pancakeswap/v3-periphery run hardhat run scripts/deploy2.ts --network ganache`
+await $`yarn workspace @pancakeswap/smart-router run hardhat run scripts/deploy2.ts --network ganache`
+await $`yarn workspace @pancakeswap/masterchef-v3 run hardhat run scripts/deploy2.ts --network ganache`
 await $`yarn workspace @pancakeswap/v3-lm-pool run hardhat run scripts/deploy2.ts --network ganache`
+await $`yarn workspace @pancakeswap/v3-lm-pool hardhat run scripts/run.js --network ganache`
+// await $`cd projects/sigma2`
+// await $`cd ..`
 console.log(chalk.blue('Done!'))
 
 const m = await fs.readJson(`./projects/masterchef-v3/deployments/ganache.json`)

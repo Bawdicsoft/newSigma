@@ -42,7 +42,8 @@ const config: HardhatUserConfig = {
     ganache: {
       url: "http://127.0.0.1:7545",
       accounts: [
-        `0x993b21089f9c9148f0f991f42972308026033e1ef91a40c510642248d28e70ac`,
+        // `0x357bcff19ee57d4e985ac3c76acdd7db3f86db2104199f1bc3515791561aeb95`,
+        process.env.PRIVATE_KEY,
       ],
     },
     ...(process.env.KEY_TESTNET && { bscTestnet }),
