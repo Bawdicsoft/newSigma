@@ -18,9 +18,9 @@ poolcreator:    0xE056E610805bD7C54940B40E13A8381662901D87
 
 async function main() {
     // const privateKey = "0xcaea4dbb3e45cc13c141dc00c940a6fd09bb5b4927953e69a2ae6648beee387d"; // Ensure the 0x prefix
-    const privateKey = "0x224adb3f61b244aaca426ae8688efb4c93d9e4b4825510ac916572421455ad03"; // Ensure the 0x prefix
+    const privateKey = "0xbdb960d9bbd40b5ac052c50cc99ded712abf82275665b75b354821f60aa4ef11"; // Ensure the 0x prefix
     const OwnerAddress = "0x1f9BBfD9c1E984530E96D799Cf5d95998E3a689D";
-    const feeCollector = "0xfEE1a7CACEbBe67D85816eEf20577C477eF187F4";
+    const feeCollector = "0xF51C374BCaA108be1d8642D1750CDf2E80B91a52";
 
     const owner = new ethers.Wallet(privateKey, ethers.provider);
     // Create a wallet (signer) from the private key
@@ -28,10 +28,10 @@ async function main() {
     // const networkName = network.name
     // First phase 
     // console.log(`owner:${owner.address}, Network:${networkName}`)
-    // const USDT = await hre.ethers.getContractFactory("BEP20USDT")
-    // const usdt = await USDT.connect(owner).deploy(OwnerAddress)
-    // const SigmaToken = await hre.ethers.getContractFactory("SigmaToken")
-    // const sigmaToken = await SigmaToken.connect(owner).deploy(OwnerAddress)
+    const USDT = await hre.ethers.getContractFactory("BEP20USDT")
+    const usdt = await USDT.connect(owner).deploy(OwnerAddress)
+    const SigmaToken = await hre.ethers.getContractFactory("SigmaToken")
+    const sigmaToken = await SigmaToken.connect(owner).deploy(OwnerAddress)
 
 
     // const USDT = await hre.ethers.getContractFactory("BEP20USDT")
@@ -40,27 +40,32 @@ async function main() {
     // const sigmaToken = await SigmaToken.connect(owner).deploy(OwnerAddress)
     // const PoolCreator = await hre.ethers.getContractFactory("PoolCreator")
     // const poolCreator = await PoolCreator.connect(owner).deploy("0x8f213Ece742b7FA057A374DEAbb95d531aa86788")
-    // console.log(`Sigma Token :${sigmaToken.address},\n USDT:${usdt.address}` );
+    console.log(`Sigma Token :${sigmaToken.address},\n USDT:${usdt.address}` );
 
    
 
     // Third Phase 
     const SigmaV3 = await hre.ethers.getContractFactory("SigmaV3")
-    const sigmaV3 = await SigmaV3.connect(owner).deploy(OwnerAddress,feeCollector,USDTdeployed,SigmaTokenDeployed)
+    const sigmaV3 = await SigmaV3.connect(owner).deploy(OwnerAddress,feeCollector,usdt.address,sigmaToken.address)
 
     // console.log(`SigmaV3:${poolCreator.address}` );
     console.log(`SigmaV3:${sigmaV3.address}` );
 
     //     const contracts = {
-//         USDT: usdt.target,
-//         SigmaToken: sigmaToken.target,
-//         SigmantarianV3: sigmaV3.target,
-//       }
+    //     USDT: usdt.target,
+    //     SigmaToken: sigmaToken.target,
+    //     SigmantarianV3: sigmaV3.target,
+    //     }
   
 
 //   fs.writeFileSync(`./deployments/${networkName}.json`, JSON.stringify(contracts, null, 2))
 }
+/*
 
+      SigmaToken :0x9434986F641157ebd24D802AE4F5817EEfe9Cbb2,
+      USDT:0x18757632aBcAC54C47092fA6dF28FE8df6Ca9E0E
+      SigmaV3:0x53071180D9369dBEd61c932b20BD1b951EfF2Dd1
+*/
 main()
   .then(() => process.exit(0))
   .catch((error) => {
